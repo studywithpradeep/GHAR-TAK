@@ -1,0 +1,456 @@
+
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GharTak — आपके दरवाज़े तक</title>
+<style>
+:root{--green:#08b76b;--dark:#173b2c;--light:#effbf4;--orange:#ff9e45;--muted:#718078}
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,"Noto Sans Devanagari",sans-serif;color:#20352a;background:#fff}
+button,input{font:inherit}
+button{cursor:pointer}
+.topbar{background:#123d2b;color:white;text-align:center;padding:9px;font-size:13px}
+header{position:sticky;top:0;background:white;z-index:10;box-shadow:0 2px 12px #123d2b10}
+.nav{max-width:1200px;margin:auto;padding:17px 22px;display:flex;align-items:center;gap:22px}
+.logo{display:flex;align-items:center;gap:10px;min-width:190px}
+.logo-icon{background:var(--green);color:white;border-radius:14px;width:48px;height:48px;display:grid;place-items:center;font-size:25px}
+.logo strong{font-size:25px;color:var(--dark);letter-spacing:-1px}
+.logo small{display:block;color:#718078;font-size:11px;margin-top:3px}
+.location{border:0;background:#f5f8f6;border-radius:12px;padding:10px 13px;text-align:left;min-width:150px}
+.location small{display:block;color:var(--muted);font-size:11px;margin-bottom:4px}
+.location b{font-size:13px}
+.search{flex:1;display:flex;align-items:center;background:#f4f7f5;border:1px solid #e7eee9;border-radius:12px;padding:0 14px;gap:9px}
+.search input{width:100%;border:0;outline:0;background:transparent;padding:14px 0}
+.nav-btn{border:0;background:white;padding:10px;font-weight:bold}
+.cart-btn{background:var(--green);border:0;border-radius:12px;color:white;padding:13px 17px;font-weight:bold;white-space:nowrap}
+.hero{max-width:1200px;margin:26px auto 0;padding:0 22px}
+.hero-inner{min-height:340px;background:linear-gradient(110deg,#e6f9ed 0%,#effbf4 52%,#d6f5e1 100%);border-radius:25px;display:grid;grid-template-columns:1.1fr .9fr;overflow:hidden}
+.hero-copy{padding:45px 0 42px 48px;align-self:center}
+.pill{display:inline-block;background:#d1f5df;color:#15824e;padding:8px 13px;border-radius:30px;font-size:12px;font-weight:bold}
+.hero h1{font-size:clamp(35px,4.4vw,56px);line-height:1.12;color:var(--dark);margin:18px 0 12px;letter-spacing:-1.8px}
+.hero h1 span{color:var(--green)}
+.hero p{color:#5f786a;line-height:1.7;font-size:15px;max-width:440px}
+.primary{border:0;background:var(--green);color:white;border-radius:10px;padding:14px 20px;font-weight:bold;margin-top:12px}
+.hero-art{display:grid;place-items:center;position:relative;min-height:300px}
+.hero-art img{width:88%;height:290px;object-fit:cover;border-radius:24px 0 0 24px}
+.float-card{position:absolute;left:4%;bottom:30px;background:white;border-radius:14px;padding:13px 16px;box-shadow:0 10px 35px #173b2c20;font-size:13px}
+.float-card b{display:block;color:var(--dark);margin-bottom:4px}
+.float-card span{color:var(--muted);font-size:11px}
+.features{max-width:1156px;margin:20px auto;padding:0 22px;display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.feature{border:1px solid #e9f0eb;border-radius:14px;padding:17px;display:flex;align-items:center;gap:12px}
+.feature-icon{width:44px;height:44px;border-radius:12px;background:#e9f9ef;display:grid;place-items:center;font-size:23px}
+.feature b{display:block;font-size:14px;margin-bottom:5px}
+.feature small{color:var(--muted);font-size:12px}
+.section{max-width:1200px;margin:42px auto 0;padding:0 22px}
+.section-head{display:flex;justify-content:space-between;align-items:end;margin-bottom:20px;gap:12px}
+.eyebrow{color:var(--green);font-size:12px;font-weight:bold;text-transform:uppercase;letter-spacing:1px}
+h2{font-size:27px;color:var(--dark);margin:7px 0 0}
+.section-head p{color:var(--muted);font-size:13px;margin:0}
+.categories{display:grid;grid-template-columns:repeat(6,1fr);gap:16px}
+.category{border:1px solid #e9f0eb;border-radius:17px;padding:16px 8px;text-align:center;background:white;transition:.2s}
+.category:hover,.product:hover{transform:translateY(-3px);box-shadow:0 10px 28px #173b2c12}
+.category img{width:88px;height:80px;object-fit:cover;border-radius:15px;background:#f3f7f3}
+.category b{display:block;margin-top:10px;font-size:14px}
+.category small{color:var(--muted);font-size:11px;display:block;margin-top:5px}
+.filter-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
+.filter{border:1px solid #e0e9e3;background:white;border-radius:30px;padding:9px 15px;color:#53645a;font-size:13px}
+.filter.active{background:#e5f8ed;border-color:#a8e8c0;color:#13834b;font-weight:bold}
+.products{display:grid;grid-template-columns:repeat(4,1fr);gap:17px}
+.product{border:1px solid #e9f0eb;border-radius:17px;overflow:hidden;transition:.2s;background:white}
+.product-img{height:170px;background:#f6f8f6;position:relative}
+.product-img img{width:100%;height:100%;object-fit:cover}
+.discount{position:absolute;left:10px;top:10px;background:#fff0df;color:#b95b0b;border-radius:7px;padding:6px 8px;font-size:11px;font-weight:bold}
+.product-info{padding:14px}
+.product-info small{color:var(--muted);font-size:11px}
+.product-info h3{margin:7px 0;font-size:15px;color:var(--dark)}
+.product-bottom{display:flex;align-items:center;justify-content:space-between;margin-top:14px;gap:8px}
+.price{font-weight:bold;color:var(--dark)}
+.price del{font-weight:normal;color:#99a39c;font-size:11px;margin-left:4px}
+.add{border:1px solid var(--green);background:#edfaf2;color:#078b4c;padding:8px 15px;border-radius:9px;font-weight:bold}
+.add:hover{background:var(--green);color:white}
+.delivery-banner{max-width:1156px;margin:45px auto;padding:0 22px}
+.delivery-inner{background:#153e2d;color:white;border-radius:22px;padding:28px 32px;display:flex;justify-content:space-between;align-items:center;gap:20px}
+.delivery-inner h2{color:white;margin:0 0 8px}
+.delivery-inner p{color:#c9e1d3;margin:0;font-size:13px;line-height:1.6}
+.delivery-inner .primary{background:white;color:#137747;white-space:nowrap}
+footer{background:#f4f8f5;padding:35px 22px;margin-top:45px}
+.footer-inner{max-width:1156px;margin:auto;display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap}
+.footer-inner p{color:var(--muted);font-size:13px;line-height:1.7}
+.footer-links{display:flex;gap:17px;align-items:center;flex-wrap:wrap;font-size:13px}
+.footer-links a{color:#456052;text-decoration:none}
+.overlay{display:none;position:fixed;inset:0;background:#102b1d80;z-index:30}
+.overlay.show{display:block}
+.cart-panel{position:fixed;right:-450px;top:0;width:min(420px,100%);height:100%;background:white;z-index:31;padding:23px;transition:.3s;overflow:auto}
+.cart-panel.show{right:0}
+.cart-head{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #e8eee9;padding-bottom:15px}
+.cart-head h2{margin:0}
+.close{border:0;background:#f1f5f2;border-radius:9px;padding:9px 12px}
+.cart-line{display:flex;justify-content:space-between;gap:12px;padding:15px 0;border-bottom:1px solid #edf1ee}
+.cart-line small{display:block;color:var(--muted);margin-top:5px}
+.qty{display:flex;align-items:center;gap:10px}
+.qty button{border:1px solid #dce9df;background:#f3faf5;border-radius:7px;padding:5px 9px}
+.cart-total{border-top:1px solid #e7eee9;margin-top:20px;padding-top:15px}
+.total-line{display:flex;justify-content:space-between;margin:12px 0}
+.checkout{width:100%;padding:15px;background:var(--green);color:white;border:0;border-radius:11px;font-weight:bold;margin-top:12px}
+.empty{text-align:center;color:var(--muted);padding:35px 0}
+.notice{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:#173b2c;color:white;padding:13px 20px;border-radius:12px;z-index:50;display:none;max-width:90%;text-align:center}
+.notice.show{display:block}
+@media(max-width:900px){
+ .nav{flex-wrap:wrap;gap:12px}.logo{min-width:0;flex:1}.location{order:3;flex:1}.search{order:4;flex-basis:100%}
+ .hero-inner{grid-template-columns:1fr}.hero-copy{padding:35px 28px 10px}.hero-art{min-height:230px}.hero-art img{height:210px;width:90%;border-radius:18px}
+ .categories{grid-template-columns:repeat(3,1fr)}.products{grid-template-columns:repeat(2,1fr)}
+ .features{grid-template-columns:1fr}.delivery-inner{align-items:flex-start;flex-direction:column}
+}
+@media(max-width:480px){
+ .nav{padding:12px}.logo strong{font-size:22px}.nav-btn{padding:7px}
+ .hero{padding:0 12px;margin-top:15px}.hero-inner{border-radius:18px}.hero-copy{padding:28px 20px 10px}
+ .hero h1{font-size:37px}.section{padding:0 12px;margin-top:32px}h2{font-size:23px}
+ .categories{gap:9px}.category{padding:11px 4px}.category img{width:65px;height:62px}
+ .products{gap:10px}.product-img{height:130px}.product-info{padding:10px}.product-info h3{font-size:13px}
+ .product-bottom{align-items:flex-start;flex-direction:column}.add{width:100%}
+ .features{padding:0 12px}.delivery-banner{padding:0 12px}.delivery-inner{padding:23px}
+}
+</style>
+</head>
+<body>
+<div class="topbar">🌿 ताज़ा सामान, स्वादिष्ट खाना — आपके दरवाज़े तक!</div>
+
+<header>
+  <div class="nav">
+    <div class="logo">
+      <div class="logo-icon">🏠</div>
+      <div><strong>GharTak</strong><small>आपके दरवाज़े तक</small></div>
+    </div>
+    <button class="location" id="locationBtn">
+      <small>📍 आपका delivery area</small>
+      <b id="locationText">अपना इलाका चुनें⌄</b>
+    </button>
+    <div class="search">🔍 <input id="searchInput" placeholder="खाना, फल, सब्ज़ियाँ और बहुत कुछ खोजें..."></div>
+    <button class="nav-btn" id="loginBtn">👤 Login</button>
+    <button class="cart-btn" id="openCart">🛒 Cart (<span id="cartCount">0</span>)</button>
+  </div>
+</header>
+
+<main>
+<section class="hero">
+ <div class="hero-inner">
+  <div class="hero-copy">
+   <span class="pill">✨ आपके अपने इलाके की service</span>
+   <h1>जो चाहिए,<br><span>GharTak</span> मँगाइए!</h1>
+   <p>ताज़ा Grocery हो या पसंदीदा खाना — अपनी रोज़मर्रा की ज़रूरतें घर बैठे ऑर्डर करें। आसान, भरोसेमंद और सुविधाजनक।</p>
+   <button class="primary" id="shopNow">अभी खरीदारी करें →</button>
+  </div>
+  <div class="hero-art">
+   <img src="https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=900&q=85" alt="ताज़े फल और सब्ज़ियाँ">
+   <div class="float-card"><b>🛵 आपके दरवाज़े तक</b><span>स्थानीय delivery service</span></div>
+  </div>
+ </div>
+</section>
+
+<section class="features">
+ <div class="feature"><div class="feature-icon">🥬</div><div><b>ताज़ा सामान</b><small>रोज़मर्रा की ज़रूरतें एक जगह</small></div></div>
+ <div class="feature"><div class="feature-icon">🛵</div><div><b>Local Delivery</b><small>आपके इलाके में delivery</small></div></div>
+ <div class="feature"><div class="feature-icon">💚</div><div><b>आसान Shopping</b><small>चुनें, cart में डालें, order करें</small></div></div>
+</section>
+
+<section class="section" id="categoriesSection">
+ <div class="section-head"><div><span class="eyebrow">अपनी पसंद चुनें</span><h2>क्या मँगाना चाहेंगे?</h2></div><p>सब कुछ एक ही जगह</p></div>
+ <div class="categories">
+  <button class="category" data-category="सब"><img src="https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=300&q=80"><b>सभी Products</b><small>सब कुछ देखें</small></button>
+  <button class="category" data-category="Grocery"><img src="https://images.unsplash.com/photo-1540420773420-3366772f4999?auto=format&fit=crop&w=300&q=80"><b>Grocery</b><small>रोज़मर्रा का सामान</small></button>
+  <button class="category" data-category="Fruits"><img src="https://images.unsplash.com/photo-1619566636858-adf3ef46400b?auto=format&fit=crop&w=300&q=80"><b>Fruits</b><small>ताज़े फल</small></button>
+  <button class="category" data-category="Vegetables"><img src="https://images.unsplash.com/photo-1566385101042-1a0aa0c1268c?auto=format&fit=crop&w=300&q=80"><b>सब्ज़ियाँ</b><small>ताज़ी सब्ज़ियाँ</small></button>
+  <button class="category" data-category="Food"><img src="https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?auto=format&fit=crop&w=300&q=80"><b>Food</b><small>स्वादिष्ट खाना</small></button>
+  <button class="category" data-category="Snacks"><img src="https://images.unsplash.com/photo-1621939514649-280e2aa8c6b2?auto=format&fit=crop&w=300&q=80"><b>Snacks</b><small>चाय के साथ</small></button>
+ </div>
+</section>
+
+<section class="section" id="productsSection">
+ <div class="section-head"><div><span class="eyebrow">आपके लिए चुना गया</span><h2>Popular Products</h2></div><p id="resultText">उत्पाद देखें और cart में जोड़ें</p></div>
+ <div class="filter-row">
+  <button class="filter active" data-filter="सब">सभी</button>
+  <button class="filter" data-filter="Grocery">Grocery</button>
+  <button class="filter" data-filter="Fruits">Fruits</button>
+  <button class="filter" data-filter="Vegetables">Vegetables</button>
+  <button class="filter" data-filter="Food">Food</button>
+  <button class="filter" data-filter="Snacks">Snacks</button>
+ </div>
+ <div class="products" id="productsGrid"></div>
+</section>
+
+<section style="max-width:1156px;margin:0 auto 36px;padding:0 20px" id="trackOrderSection">
+ <div style="background:#fff;border:1px solid #dce9df;border-radius:18px;padding:22px">
+  <h2 style="margin-top:0">📦 अपना Order Status देखें</h2>
+  <p style="color:#718078;font-size:14px">Order ID डालकर confirmation status देखें। यह demo उसी browser की saved जानकारी पढ़ता है।</p>
+  <form id="trackOrderForm" style="display:flex;gap:10px;flex-wrap:wrap">
+   <input id="trackOrderId" required placeholder="जैसे GT12345678" style="flex:1;min-width:200px;padding:12px;border:1px solid #dce7df;border-radius:10px">
+   <button type="submit" class="primary" style="margin:0">Status देखें</button>
+  </form>
+  <div id="trackOrderResult" aria-live="polite" style="margin-top:14px"></div>
+ </div>
+</section>
+
+<section class="delivery-banner">
+ <div class="delivery-inner">
+  <div><h2>आपका सामान, आपके घर तक 💚</h2><p>अपना इलाका चुनें और GharTak के साथ अपनी shopping आसान बनाएँ।<br>Delivery area और charges आपके इलाके के अनुसार तय होंगे।</p></div>
+  <button class="primary" id="bannerLocation">अपना इलाका चुनें →</button>
+ </div>
+</section>
+</main>
+
+<footer>
+ <div class="footer-inner">
+  <div><div class="logo"><div class="logo-icon">🏠</div><div><strong>GharTak</strong><small>आपके दरवाज़े तक</small></div></div><p>Food और Grocery की shopping, अब और आसान।<br>आपकी local delivery service.</p></div>
+  <div class="footer-links"><a href="#categoriesSection">Categories</a><a href="#productsSection">Products</a><a href="#" id="footerHelp">Help & Support</a></div>
+ </div>
+ <div style="max-width:1156px;margin:20px auto 0;color:#87968c;font-size:12px">© <span id="year"></span> GharTak. All rights reserved.</div>
+</footer>
+
+<div class="overlay" id="overlay"></div>
+<aside class="cart-panel" id="cartPanel">
+ <div class="cart-head"><h2>🛒 आपका Cart</h2><button class="close" id="closeCart">✕</button></div>
+ <div id="cartItems"></div>
+ <div class="cart-total" id="cartTotal" style="display:none">
+  <div class="total-line"><span>Subtotal</span><b id="subtotal">₹0</b></div>
+  <div class="total-line"><span>Delivery charges</span><b>अगले चरण में तय होंगे</b></div>
+  <button class="checkout" id="checkoutBtn">Order details भरें →</button>
+  <p style="font-size:11px;color:#718078;line-height:1.6">यह अभी local demo है। Order इसी browser में save होगा; online delivery service को नहीं भेजा जाएगा।</p>
+ </div>
+</aside>
+<div class="notice" id="notice"></div>
+
+<div id="orderModal" style="display:none;position:fixed;inset:0;z-index:50;background:#0008;overflow:auto;padding:18px">
+ <div style="max-width:520px;margin:4vh auto;background:white;border-radius:18px;padding:22px;box-shadow:0 20px 60px #0003">
+  <div style="display:flex;justify-content:space-between;align-items:center;gap:12px"><h2 style="margin:0">📦 Order Details</h2><button type="button" id="closeOrder" class="close">✕</button></div>
+  <p style="color:#718078;font-size:13px">अपनी जानकारी भरें। अभी payment की जरूरत नहीं है।</p>
+  <form id="orderForm">
+   <div id="savedCustomerBox" style="display:none;background:#f3faf5;padding:14px;border-radius:12px;margin:12px 0"></div>
+   <div id="customerFields">
+   <label for="customerName" style="display:block;margin:12px 0 5px">पूरा नाम *</label>
+   <input id="customerName" required maxlength="80" autocomplete="name" style="width:100%;padding:12px;border:1px solid #dce7df;border-radius:10px">
+   <label for="customerPhone" style="display:block;margin:12px 0 5px">मोबाइल नंबर *</label>
+   <input id="customerPhone" required type="tel" inputmode="numeric" pattern="[0-9+() -]{10,16}" maxlength="16" autocomplete="tel" placeholder="10 अंकों का नंबर" style="width:100%;padding:12px;border:1px solid #dce7df;border-radius:10px">
+   <label for="customerArea" style="display:block;margin:12px 0 5px">शहर / इलाका *</label>
+   <input id="customerArea" required maxlength="100" autocomplete="address-level2" style="width:100%;padding:12px;border:1px solid #dce7df;border-radius:10px">
+   <label for="customerAddress" style="display:block;margin:12px 0 5px">पूरा delivery address *</label>
+   <textarea id="customerAddress" required maxlength="400" autocomplete="street-address" rows="3" style="width:100%;padding:12px;border:1px solid #dce7df;border-radius:10px;resize:vertical"></textarea>
+   <label for="customerNote" style="display:block;margin:12px 0 5px">Order note (optional)</label>
+   <textarea id="customerNote" maxlength="250" rows="2" style="width:100%;padding:12px;border:1px solid #dce7df;border-radius:10px;resize:vertical"></textarea>
+   </div>
+   <div id="orderReview" style="background:#f3faf5;border-radius:10px;padding:12px;margin-top:14px;font-size:14px"></div>
+   <button id="editCustomerBtn" type="button" style="display:none;width:100%;margin-top:12px;padding:12px;border:1px solid #16834a;border-radius:10px;background:white;color:#16834a;font-weight:700">✏️ Details Edit करें</button>
+   <button id="confirmCustomerBtn" class="checkout" type="submit">Details Confirm करें और Order करें</button>
+  </form>
+ </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL='https://ufgtywxfegfvqzmvefsm.supabase.co';
+const SUPABASE_KEY='sb_publishable_ZZhd_NMia3FijqYLu93ilw_V7tk2_E1';
+const db=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+const KEY="ghartak_admin_products_v1";
+const defaultProducts=[
+ {id:1,name:"ताज़े केले",category:"Fruits",price:50,unit:"1 दर्जन",old:60,img:"https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?auto=format&fit=crop&w=500&q=80",discount:"17% OFF"},
+ {id:2,name:"लाल सेब",category:"Fruits",price:140,unit:"1 kg",old:160,img:"https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?auto=format&fit=crop&w=500&q=80",discount:"12% OFF"},
+ {id:3,name:"ताज़े टमाटर",category:"Vegetables",price:35,unit:"1 kg",old:45,img:"https://images.unsplash.com/photo-1546094096-0df4bcaaa337?auto=format&fit=crop&w=500&q=80",discount:"22% OFF"},
+ {id:4,name:"हरी सब्ज़ियाँ",category:"Vegetables",price:40,unit:"1 पैक",old:50,img:"https://images.unsplash.com/photo-1566385101042-1a0aa0c1268c?auto=format&fit=crop&w=500&q=80",discount:"20% OFF"},
+ {id:5,name:"दूध",category:"Grocery",price:32,unit:"500 ml",old:35,img:"https://images.unsplash.com/photo-1563636619-e9143da7973b?auto=format&fit=crop&w=500&q=80",discount:"9% OFF"},
+ {id:6,name:"ब्रेड",category:"Grocery",price:40,unit:"1 पैक",old:45,img:"https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=500&q=80",discount:"11% OFF"},
+ {id:7,name:"पिज़्ज़ा",category:"Food",price:199,unit:"1 पीस",old:249,img:"https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?auto=format&fit=crop&w=500&q=80",discount:"20% OFF"},
+ {id:8,name:"बर्गर",category:"Food",price:99,unit:"1 पीस",old:129,img:"https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=500&q=80",discount:"23% OFF"},
+ {id:9,name:"आलू चिप्स",category:"Snacks",price:20,unit:"1 पैक",old:25,img:"https://images.unsplash.com/photo-1621939514649-280e2aa8c6b2?auto=format&fit=crop&w=500&q=80",discount:"20% OFF"},
+ {id:10,name:"स्ट्रॉबेरी",category:"Fruits",price:120,unit:"1 बॉक्स",old:140,img:"https://images.unsplash.com/photo-1464965911861-746a04b4bca6?auto=format&fit=crop&w=500&q=80",discount:"14% OFF"},
+ {id:11,name:"ताज़े खीरे",category:"Vegetables",price:30,unit:"500 g",old:40,img:"https://images.unsplash.com/photo-1604977042946-1eecc30f269e?auto=format&fit=crop&w=500&q=80",discount:"25% OFF"},
+ {id:12,name:"कुकीज़",category:"Snacks",price:60,unit:"1 पैक",old:75,img:"https://images.unsplash.com/photo-1499636136210-6f4ee915583e?auto=format&fit=crop&w=500&q=80",discount:"20% OFF"}
+];;
+let products;
+try {
+  const saved = localStorage.getItem(KEY);
+  if (saved !== null) {
+    products = JSON.parse(saved).map(p => ({
+      ...p,
+      img: p.img || p.image || "",
+      image: p.image || p.img || "",
+      old: Number(p.old) || Number(p.price),
+      available: p.available !== false,
+      discount: p.discount || (Number(p.old) > Number(p.price) ? Math.round((1-Number(p.price)/Number(p.old))*100)+"% OFF" : "")
+    }));
+  } else {
+    products = defaultProducts.map(p => ({...p, image:p.img, available:true}));
+    localStorage.setItem(KEY, JSON.stringify(products));
+  }
+} catch (e) {
+  products = defaultProducts.map(p => ({...p, image:p.img, available:true}));
+}
+
+let cart={};
+let activeCategory="सब";
+const grid=document.getElementById("productsGrid");
+const rupees=n=>"₹"+n;
+
+function renderProducts(){
+ const query=document.getElementById("searchInput").value.trim().toLowerCase();
+ const list=products.filter(p=>p.available!==false&&(activeCategory==="सब"||p.category===activeCategory)&&
+ (p.name.toLowerCase().includes(query)||p.category.toLowerCase().includes(query)));
+ grid.innerHTML=list.length?list.map(p=>`
+ <article class="product">
+  <div class="product-img"><img loading="lazy" src="${p.img}" alt="${p.name}"><span class="discount">${p.discount}</span></div>
+  <div class="product-info"><small>${p.category} · ${p.unit}</small><h3>${p.name}</h3>
+  <div class="product-bottom"><div class="price">${rupees(p.price)} <del>${rupees(p.old)}</del></div>
+  <button class="add" data-add="${p.id}">${cart[p.id]?"+"+cart[p.id]+" · Add":"＋ Add"}</button></div></div>
+ </article>`).join(""):'<p>कोई product नहीं मिला। दूसरा नाम खोजें।</p>';
+ document.getElementById("resultText").textContent=list.length+" products मिले";
+ document.querySelectorAll(".filter").forEach(b=>b.classList.toggle("active",b.dataset.filter===activeCategory));
+}
+function updateCart(){
+ const count=Object.values(cart).reduce((a,b)=>a+b,0);
+ document.getElementById("cartCount").textContent=count;
+ const entries=products.filter(p=>p.available!==false&&cart[p.id]);
+ document.getElementById("cartItems").innerHTML=entries.length?entries.map(p=>`
+ <div class="cart-line"><div><b>${p.name}</b><small>${p.unit} · ${rupees(p.price)}</small></div>
+ <div class="qty"><button data-minus="${p.id}">−</button><b>${cart[p.id]}</b><button data-plus="${p.id}">+</button></div></div>`).join(""):'<div class="empty"><div style="font-size:45px">🛒</div><h3>आपका cart खाली है</h3><p>अपनी पसंद के products जोड़ें।</p></div>';
+ const total=entries.reduce((sum,p)=>sum+p.price*cart[p.id],0);
+ document.getElementById("subtotal").textContent=rupees(total);
+ document.getElementById("cartTotal").style.display=entries.length?"block":"none";
+ renderProducts();
+}
+function showNotice(message){
+ const n=document.getElementById("notice");n.textContent=message;n.classList.add("show");
+ setTimeout(()=>n.classList.remove("show"),2200);
+}
+function setCategory(category){
+ activeCategory=category;renderProducts();
+ document.getElementById("productsSection").scrollIntoView({behavior:"smooth",block:"start"});
+}
+function openCart(){document.getElementById("overlay").classList.add("show");document.getElementById("cartPanel").classList.add("show")}
+function closeCart(){document.getElementById("overlay").classList.remove("show");document.getElementById("cartPanel").classList.remove("show")}
+
+grid.addEventListener("click",e=>{
+ const btn=e.target.closest("[data-add]");if(!btn)return;
+ const id=Number(btn.dataset.add);cart[id]=(cart[id]||0)+1;updateCart();showNotice("✓ "+products.find(p=>p.id===id).name+" cart में जुड़ गया");
+});
+document.getElementById("cartItems").addEventListener("click",e=>{
+ const plus=e.target.closest("[data-plus]"),minus=e.target.closest("[data-minus]");
+ if(plus){const id=Number(plus.dataset.plus);cart[id]=(cart[id]||0)+1}
+ if(minus){const id=Number(minus.dataset.minus);cart[id]--;if(cart[id]<=0)delete cart[id]}
+ updateCart();
+});
+document.getElementById("searchInput").addEventListener("input",renderProducts);
+document.querySelectorAll(".filter").forEach(b=>b.addEventListener("click",()=>setCategory(b.dataset.filter)));
+document.querySelectorAll(".category").forEach(b=>b.addEventListener("click",()=>setCategory(b.dataset.category)));
+document.getElementById("openCart").addEventListener("click",openCart);
+document.getElementById("closeCart").addEventListener("click",closeCart);
+document.getElementById("overlay").addEventListener("click",closeCart);
+document.getElementById("shopNow").addEventListener("click",()=>document.getElementById("categoriesSection").scrollIntoView({behavior:"smooth"}));
+document.getElementById("locationBtn").addEventListener("click",chooseLocation);
+document.getElementById("bannerLocation").addEventListener("click",chooseLocation);
+function chooseLocation(){
+ const area=prompt("अपना शहर, कस्बा या इलाका लिखें:");
+ if(area&&area.trim()){document.getElementById("locationText").textContent=area.trim();showNotice("📍 Delivery area चुना गया: "+area.trim())}
+}
+document.getElementById("loginBtn").addEventListener("click",()=>showNotice("Login सुविधा अगले चरण में जोड़ी जाएगी।"));
+const ORDERS_KEY="ghartak_orders_v1";
+const CUSTOMER_KEY="ghartak_customer_details_v1";
+function getSavedCustomer(){try{return JSON.parse(localStorage.getItem(CUSTOMER_KEY)||"null")}catch(e){return null}}
+function setCustomerFieldsEnabled(enabled){
+ document.querySelectorAll("#customerFields input,#customerFields textarea").forEach(el=>{el.disabled=!enabled});
+ document.getElementById("customerFields").style.display=enabled?"block":"none";
+ document.getElementById("savedCustomerBox").style.display=enabled?"none":"block";
+ document.getElementById("editCustomerBtn").style.display=enabled?"none":"block";
+ document.getElementById("confirmCustomerBtn").textContent=enabled?"Details Save करके Order करें":"Details Confirm करें और Order करें";
+}
+function openOrderForm(){
+ const entries=products.filter(p=>p.available!==false&&cart[p.id]);
+ if(!entries.length){showNotice("पहले cart में product जोड़ें।");return}
+ const area=document.getElementById("locationText").textContent;
+ const saved=getSavedCustomer();
+ const fields={name:"customerName",phone:"customerPhone",area:"customerArea",address:"customerAddress",note:"customerNote"};
+ if(saved){Object.entries(fields).forEach(([k,id])=>document.getElementById(id).value=saved[k]||"");
+  document.getElementById("savedCustomerBox").innerHTML="<b>आपकी saved details</b><br>"+[saved.name,saved.phone,saved.area,saved.address].filter(Boolean).map(v=>String(v).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]))).join("<br>")+"<br><span style='font-size:12px;color:#718078'>जानकारी बदलनी हो तो Edit Details दबाएँ।</span>";
+  setCustomerFieldsEnabled(false);
+ }else{
+  document.getElementById("customerArea").value=area==="अपना इलाका चुनें"?"":area;
+  setCustomerFieldsEnabled(true);
+ }
+ document.getElementById("orderReview").innerHTML="<b>आपका order</b><br>"+entries.map(p=>`${p.name} × ${cart[p.id]} = ₹${Number(p.price)*cart[p.id]}`).join("<br>")+"<hr style='border:0;border-top:1px solid #dce9df'><b>Total: ₹"+entries.reduce((s,p)=>s+Number(p.price)*cart[p.id],0)+"</b>";
+ document.getElementById("orderModal").style.display="block";
+}
+function closeOrderForm(){document.getElementById("orderModal").style.display="none"}
+document.getElementById("checkoutBtn").addEventListener("click",openOrderForm);
+document.getElementById("editCustomerBtn").addEventListener("click",()=>setCustomerFieldsEnabled(true));
+document.getElementById("closeOrder").addEventListener("click",closeOrderForm);
+document.getElementById("orderModal").addEventListener("click",e=>{if(e.target.id==="orderModal")closeOrderForm()});
+document.getElementById("orderForm").addEventListener("submit",e=>{
+ e.preventDefault();
+ const entries=products.filter(p=>p.available!==false&&cart[p.id]);
+ if(!entries.length){alert("Cart खाली है।");closeOrderForm();return}
+ const order={
+  id:"GT"+Date.now().toString().slice(-8),
+  createdAt:new Date().toISOString(),
+  status:"Pending",
+  customer:{
+   name:document.getElementById("customerName").value.trim(),
+   phone:document.getElementById("customerPhone").value.trim(),
+   area:document.getElementById("customerArea").value.trim(),
+   address:document.getElementById("customerAddress").value.trim(),
+   note:document.getElementById("customerNote").value.trim()
+  },
+  items:entries.map(p=>({id:p.id,name:p.name,price:Number(p.price),unit:p.unit||"",quantity:cart[p.id]})),
+  total:entries.reduce((s,p)=>s+Number(p.price)*cart[p.id],0)
+ };
+ if(!order.customer.name||!order.customer.phone||!order.customer.area||!order.customer.address){alert("सभी जरूरी जानकारी भरें।");return}
+ try{
+  const profile={name:order.customer.name,phone:order.customer.phone,area:order.customer.area,address:order.customer.address,note:order.customer.note};
+  localStorage.setItem(CUSTOMER_KEY,JSON.stringify(profile));
+  const orders=JSON.parse(localStorage.getItem(ORDERS_KEY)||"[]");
+  orders.unshift(order);
+  localStorage.setItem(ORDERS_KEY,JSON.stringify(orders));
+ }catch(err){alert("Order save नहीं हो पाया। इस browser की storage उपलब्ध नहीं है।");return}
+ closeOrderForm();closeCart();cart={};updateCart();
+ alert("Order submit हो गया!\nOrder ID: "+order.id+"\nStatus: Pending\n\nAdmin के confirm/reject करने के बाद Order Status section में ID डालकर status देखें। यह अभी local demo है; किसी दुकान को online order नहीं भेजा गया।");
+ document.getElementById("trackOrderId").value=order.id;
+ document.getElementById("trackOrderResult").textContent="आपका Order ID: "+order.id+" — Status: Pending";
+ document.getElementById("orderForm").reset();
+});
+document.getElementById("trackOrderForm").addEventListener("submit",e=>{
+ e.preventDefault();
+ const id=document.getElementById("trackOrderId").value.trim().toUpperCase();
+ let orders=[];try{orders=JSON.parse(localStorage.getItem(ORDERS_KEY)||"[]")}catch(err){}
+ const order=orders.find(o=>String(o.id).toUpperCase()===id);
+ const host=document.getElementById("trackOrderResult");
+ if(!order){host.textContent="यह Order ID इस browser में नहीं मिली। ID जाँचें या उसी browser में कोशिश करें।";return}
+ const status=order.status||"Pending";
+ const messages={"Pending":"आपका order मिला है। Admin की confirmation का इंतज़ार है।","Confirmed":"आपका order confirm हो गया है! 💚","Rejected":"माफ़ कीजिए, आपका order स्वीकार नहीं किया गया। दुकान से संपर्क करें।","Preparing":"आपका order तैयार किया जा रहा है।","Out for delivery":"आपका order delivery के लिए निकल चुका है।","Delivered":"आपका order deliver हो गया है।","Cancelled":"यह order cancel कर दिया गया है।"};
+ host.innerHTML="<div style='background:#f3faf5;padding:14px;border-radius:10px'><b>Order ID: "+order.id+"</b><br><b>Status: "+status+"</b><br>"+(messages[status]||"आपके order का status update हो गया है।")+"<br><span style='font-size:12px;color:#718078'>Total: ₹"+Number(order.total||0)+"</span></div>";
+});
+document.getElementById("footerHelp").addEventListener("click",e=>{e.preventDefault();showNotice("Support contact हम अगले चरण में जोड़ेंगे।")});
+window.addEventListener("storage", e => {
+ if (e.key === KEY && e.newValue) {
+  try {
+   products = JSON.parse(e.newValue).map(p => ({...p, img:p.img||p.image||"", image:p.image||p.img||"", old:Number(p.old)||Number(p.price), available:p.available!==false, discount:p.discount||(Number(p.old)>Number(p.price)?Math.round((1-Number(p.price)/Number(p.old))*100)+"% OFF":"")}));
+   cart = Object.fromEntries(Object.entries(cart).filter(([id])=>products.some(p=>String(p.id)===id&&p.available!==false)));
+   renderProducts(); updateCart();
+  } catch(err) {}
+ }
+});
+document.getElementById("year").textContent=new Date().getFullYear();
+renderProducts();updateCart();
+async function loadSharedProducts(){
+ try{
+  const {data,error}=await db.from('products').select('*').order('id');
+  if(error) throw error;
+  if(data && data.length){
+   products=data.map(p=>({id:p.id,name:p.name,category:p.category||'Grocery',price:Number(p.price)||0,old:Number(p.old_price)||Number(p.price)||0,unit:p.unit||'pcs',img:p.image_url||'',image:p.image_url||'',available:p.available!==false&&p.in_stock!==false,discount:(Number(p.old_price)>Number(p.price))?Math.round((1-Number(p.price)/Number(p.old_price))*100)+'% OFF':''}));
+   localStorage.setItem(KEY,JSON.stringify(products));renderProducts();updateCart();
+  } else if(data && data.length===0){
+   const notice=document.createElement('p');notice.style.cssText='padding:10px;color:#5d6b61;font-size:13px';notice.textContent='Supabase connected है, लेकिन database में अभी products नहीं हैं। Admin panel से products upload करें।';grid.parentElement.prepend(notice);
+  }
+ }catch(err){console.error('Supabase products load:',err);}
+}
+loadSharedProducts();
+</script>
+</body>
+</html>

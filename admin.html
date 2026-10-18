@@ -1,0 +1,288 @@
+
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>GharTak — Admin Panel</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,sans-serif;background:#f2f7f3;color:#193b2b}
+header{background:#153e2d;color:white;padding:20px}
+header h1{margin:0;font-size:25px}
+header p{margin:7px 0 0;color:#d2e9da}
+main{max-width:1050px;margin:25px auto;padding:0 16px}
+.card{background:white;border:1px solid #e1ebe4;border-radius:16px;padding:22px;margin-bottom:20px}
+h2{margin:0 0 18px}
+label{display:block;font-weight:bold;font-size:13px;margin:12px 0 6px}
+input,select{width:100%;padding:12px;border:1px solid #d6e2d9;border-radius:9px;background:white}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+button{border:0;border-radius:9px;padding:11px 15px;font-weight:bold;cursor:pointer}
+.primary{background:#08b76b;color:white;margin-top:16px}
+.secondary{background:#eaf7ef;color:#117746}
+.danger{background:#fff0ef;color:#b62d2d}
+.products{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.product{border:1px solid #e3ece5;border-radius:12px;overflow:hidden}
+.product img{width:100%;height:130px;object-fit:cover;background:#f1f5f2}
+.info{padding:12px}
+.info h3{font-size:16px;margin:4px 0 8px}
+.info p{font-size:13px;color:#687b6e;margin:5px 0}
+.actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:12px}
+.status{font-size:12px;font-weight:bold;color:#087c45}
+.muted{font-size:13px;color:#718078;line-height:1.6}
+@media(max-width:700px){.grid,.products{grid-template-columns:1fr 1fr}}
+@media(max-width:430px){.grid,.products{grid-template-columns:1fr}.card{padding:16px}}
+/* Login gate: admin content is hidden until a fresh password login succeeds. */
+body:not(.admin-authenticated) main>section:not(#adminLoginCard){display:none!important}
+body.admin-authenticated #adminLoginCard{display:none!important}
+</style>
+</head>
+<body>
+<header>
+  <h1>🏠 GharTak Admin</h1>
+  <p>आपके दरवाज़े तक — Product Management</p>
+</header>
+<main>
+  <section class="card">
+    <h2 id="formTitle">➕ नया Product जोड़ें</h2>
+    <form id="productForm">
+      <input type="hidden" id="editId">
+      <label for="name">Product का नाम</label>
+      <input id="name" required placeholder="जैसे: ताज़े केले">
+      <div class="grid">
+        <div><label for="category">Category</label>
+          <select id="category">
+            <option>Grocery</option><option>Fruits</option>
+            <option>Vegetables</option><option>Food</option><option>Snacks</option>
+          </select>
+        </div>
+        <div><label for="unit">Quantity / Unit</label>
+          <input id="unit" required placeholder="जैसे: 1 kg">
+        </div>
+        <div><label for="price">Price (₹)</label>
+          <input id="price" type="number" min="0.01" step="0.01" required>
+        </div>
+        <div><label for="old">पुरानी Price (₹)</label>
+          <input id="old" type="number" min="0" step="0.01" placeholder="Optional">
+        </div>
+      </div>
+      <label for="image">Image URL</label>
+      <input id="image" type="url" placeholder="https://example.com/product.jpg">
+      <label><input id="available" type="checkbox" checked style="width:auto"> Product उपलब्ध है</label>
+      <button class="primary" type="submit" id="saveBtn">Product Save करें</button>
+      <button class="secondary" type="button" id="cancelBtn" hidden>Cancel Edit</button>
+    </form>
+    <p class="muted">ध्यान दें: यह अभी local demo है। यह public, secure admin login नहीं है।</p>
+  </section>
+
+  <section class="card" id="adminLoginCard" style="margin-bottom:18px">
+    <h2>🔐 Admin Login</h2>
+    <p class="muted">Admin panel खोलने पर हर बार email और password डालना होगा।</p>
+    <form id="adminLoginForm" autocomplete="on">
+      <label for="adminEmail">Admin Email</label>
+      <input id="adminEmail" type="email" value="pradeepvishwakarma9214@gmail.com" autocomplete="username" required>
+      <label for="adminPassword">Password</label>
+      <input id="adminPassword" type="password" autocomplete="current-password" required placeholder="अपना admin password डालें">
+      <button id="adminLoginBtn" type="submit" class="primary">Login करें</button>
+    </form>
+    <p id="adminAuthMsg" class="muted" role="status"></p>
+  </section>
+  <section class="card" id="ordersSection">
+    <h2>🧾 Customer Orders</h2>
+    <p class="muted">हर order को Confirm या Reject करें। यह अभी उसी browser में save होने वाला demo है; अलग-अलग devices के लिए online database चाहिए।</p>
+    <div id="orderList"></div>
+  </section>
+  <section class="card">
+    <h2>📦 आपके Products</h2>
+    <p class="muted">यहाँ जो products दिखेंगे, वे इस browser में save किए गए होंगे।</p>
+    <div class="products" id="productList"></div>
+  </section>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL='https://ufgtywxfegfvqzmvefsm.supabase.co';
+const SUPABASE_KEY='sb_publishable_ZZhd_NMia3FijqYLu93ilw_V7tk2_E1';
+const db=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}});
+const ADMIN_EMAIL="pradeepvishwakarma9214@gmail.com";
+let adminSession=null;
+const KEY="ghartak_admin_products_v1";
+const ORDERS_KEY="ghartak_orders_v1";
+const starter=[
+{id:1,name:"ताज़े केले",category:"Fruits",price:50,old:60,unit:"1 दर्जन",image:"https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?auto=format&fit=crop&w=500&q=80",available:true},
+{id:2,name:"लाल सेब",category:"Fruits",price:140,old:160,unit:"1 kg",image:"https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?auto=format&fit=crop&w=500&q=80",available:true},
+{id:3,name:"ताज़े टमाटर",category:"Vegetables",price:35,old:45,unit:"1 kg",image:"https://images.unsplash.com/photo-1546094096-0df4bcaaa337?auto=format&fit=crop&w=500&q=80",available:true},
+{id:4,name:"हरी सब्ज़ियाँ",category:"Vegetables",price:40,old:50,unit:"1 पैक",image:"https://images.unsplash.com/photo-1566385101042-1a0aa0c1268c?auto=format&fit=crop&w=500&q=80",available:true},
+{id:5,name:"दूध",category:"Grocery",price:32,old:35,unit:"500 ml",image:"https://images.unsplash.com/photo-1563636619-e9143da7973b?auto=format&fit=crop&w=500&q=80",available:true},
+{id:6,name:"ब्रेड",category:"Grocery",price:40,old:45,unit:"1 पैक",image:"https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=500&q=80",available:true},
+{id:7,name:"पिज़्ज़ा",category:"Food",price:199,old:249,unit:"1 पीस",image:"https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?auto=format&fit=crop&w=500&q=80",available:true},
+{id:8,name:"बर्गर",category:"Food",price:99,old:129,unit:"1 पीस",image:"https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=500&q=80",available:true},
+{id:9,name:"आलू चिप्स",category:"Snacks",price:20,old:25,unit:"1 पैक",image:"https://images.unsplash.com/photo-1621939514649-280e2aa8c6b2?auto=format&fit=crop&w=500&q=80",available:true},
+{id:10,name:"स्ट्रॉबेरी",category:"Fruits",price:120,old:140,unit:"1 बॉक्स",image:"https://images.unsplash.com/photo-1464965911861-746a04b4bca6?auto=format&fit=crop&w=500&q=80",available:true},
+{id:11,name:"ताज़े खीरे",category:"Vegetables",price:30,old:40,unit:"500 g",image:"https://images.unsplash.com/photo-1604977042946-1eecc30f269e?auto=format&fit=crop&w=500&q=80",available:true},
+{id:12,name:"कुकीज़",category:"Snacks",price:60,old:75,unit:"1 पैक",image:"https://images.unsplash.com/photo-1499636136210-6f4ee915583e?auto=format&fit=crop&w=500&q=80",available:true}
+];
+let products;
+try{const saved=localStorage.getItem(KEY);products=saved!==null?JSON.parse(saved):starter.map(p=>({...p}));if(saved===null)localStorage.setItem(KEY,JSON.stringify(products));}catch(e){products=starter.map(p=>({...p}))}
+const $=id=>document.getElementById(id);
+function safe(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function renderOrders(){
+ let orders=[];
+ try{orders=JSON.parse(localStorage.getItem(ORDERS_KEY)||"[]")}catch(e){}
+ const host=$("orderList");
+ if(!orders.length){host.innerHTML='<p class="muted">अभी कोई order नहीं है। Customer website से test order करने के बाद यहाँ refresh करके देखें।</p>';return}
+ host.innerHTML=orders.map(o=>{
+  const c=o.customer||{};
+  const items=Array.isArray(o.items)?o.items:[];
+  const when=o.createdAt?new Date(o.createdAt).toLocaleString("hi-IN"):"समय उपलब्ध नहीं";
+  return `<article class="card" style="margin:12px 0;padding:16px;border:1px solid #dce9df">
+   <div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap"><h3 style="margin:0">Order ${safe(o.id)}</h3><b>₹${Number(o.total||0).toFixed(2)}</b></div>
+   <p class="muted">${safe(when)} · <b>Status: ${safe(o.status||"Pending")}</b></p>
+   <p><b>ग्राहक:</b> ${safe(c.name)}<br><b>मोबाइल:</b> ${safe(c.phone)}<br><b>इलाका:</b> ${safe(c.area)}<br><b>पता:</b> ${safe(c.address)}</p>
+   ${c.note?`<p><b>Note:</b> ${safe(c.note)}</p>`:""}
+   <p><b>सामान:</b><br>${items.map(i=>`${safe(i.name)} × ${Number(i.quantity)||0} — ₹${(Number(i.price)||0)*(Number(i.quantity)||0)}`).join("<br>")}</p>
+   <label style="display:block;margin:10px 0 5px">Order status</label>
+   <select data-order-status="${safe(o.id)}" style="padding:9px;border:1px solid #dce7df;border-radius:8px">
+    ${["Pending","Confirmed","Rejected","Preparing","Out for delivery","Delivered","Cancelled"].map(st=>`<option ${((o.status||"Pending")===st)?"selected":""}>${st}</option>`).join("")}
+   </select>
+   <button class="danger" data-order-delete="${safe(o.id)}" style="margin-left:8px">Order Delete</button>
+  </article>`;
+ }).join("");
+}
+$("orderList").addEventListener("change",e=>{
+ const sel=e.target.closest("[data-order-status]");if(!sel)return;
+ const orders=JSON.parse(localStorage.getItem(ORDERS_KEY)||"[]");
+ const o=orders.find(x=>String(x.id)===sel.dataset.orderStatus);if(o){o.status=sel.value;o.statusUpdatedAt=new Date().toISOString()}
+ localStorage.setItem(ORDERS_KEY,JSON.stringify(orders));renderOrders();
+});
+$("orderList").addEventListener("click",e=>{
+ const btn=e.target.closest("[data-order-delete]");if(!btn)return;
+ if(!confirm("क्या यह order delete करना है?"))return;
+ const orders=JSON.parse(localStorage.getItem(ORDERS_KEY)||"[]").filter(o=>String(o.id)!==btn.dataset.orderDelete);
+ localStorage.setItem(ORDERS_KEY,JSON.stringify(orders));renderOrders();
+});
+window.addEventListener("storage",e=>{if(e.key===ORDERS_KEY)renderOrders()});
+async function save(){
+ localStorage.setItem(KEY,JSON.stringify(products));render();
+ if(!adminSession || (adminSession.user.email||'').toLowerCase()!==ADMIN_EMAIL){alert('पहले admin email login करें। Local preview save हुआ, database में नहीं।');return}
+ try{
+  const last=products[products.length-1];
+  // Product form/edit actions use the DB helper below; this save only preserves local fallback.
+  if(last) await syncProductToDatabase(last);
+ }catch(err){console.error(err);alert('Database save नहीं हुआ: '+(err.message||err))}
+}
+async function syncProductToDatabase(p){
+ const row={name:p.name,description:'',price:Number(p.price),old_price:Number(p.old)||Number(p.price),image_url:p.image||p.img||'',category:p.category||'Grocery',unit:p.unit||'pcs',available:p.available!==false,in_stock:p.available!==false};
+ if(p.id && p.id<1000000000000){
+  const {data,error}=await db.from('products').insert(row).select().single(); if(error)throw error; p.id=data.id;
+ }else{
+  const {error}=await db.from('products').update(row).eq('id',p.id); if(error)throw error;
+ }
+ localStorage.setItem(KEY,JSON.stringify(products));
+}
+async function loadProductsFromDatabase(){
+ try{
+  const {data,error}=await db.from('products').select('*').order('id'); if(error)throw error;
+  if(data && data.length){products=data.map(p=>({id:p.id,name:p.name,category:p.category||'Grocery',unit:p.unit||'pcs',price:Number(p.price)||0,old:Number(p.old_price)||Number(p.price)||0,image:p.image_url||'',available:p.available!==false&&p.in_stock!==false}));localStorage.setItem(KEY,JSON.stringify(products));render();}
+  else if(data && data.length===0){const seed=starter.map(p=>({name:p.name,description:'',price:p.price,old_price:p.old,image_url:p.image,category:p.category,unit:p.unit,available:p.available,in_stock:p.available}));const {data:added,error:seedError}=await db.from('products').insert(seed).select();if(seedError)throw seedError;products=added.map(p=>({id:p.id,name:p.name,category:p.category,unit:p.unit,price:Number(p.price),old:Number(p.old_price)||Number(p.price),image:p.image_url||'',available:p.available!==false&&p.in_stock!==false}));localStorage.setItem(KEY,JSON.stringify(products));render();}
+ }catch(err){console.error(err);$('adminAuthMsg').textContent='Products load error: '+(err.message||err)}
+}
+function setAdminAccess(session){
+ adminSession=session;
+ const ok=!!session && (session.user.email||'').toLowerCase()===ADMIN_EMAIL;
+ document.body.classList.toggle('admin-authenticated',ok);
+ $('adminAuthMsg').textContent=ok?'Login successful. Admin panel खुल गया है.':'अपना admin email और password डालकर login करें।';
+ if(ok) loadProductsFromDatabase();
+}
+$('adminLoginForm').addEventListener('submit',async(e)=>{
+ e.preventDefault();
+ const email=$('adminEmail').value.trim().toLowerCase();
+ const password=$('adminPassword').value;
+ if(email!==ADMIN_EMAIL){$('adminAuthMsg').textContent='यह admin email सही नहीं है।';return}
+ $('adminLoginBtn').disabled=true;
+ $('adminAuthMsg').textContent='Login जाँच रहे हैं…';
+ try{
+  const {data,error}=await db.auth.signInWithPassword({email,password});
+  if(error) throw error;
+  if(!data.user || (data.user.email||'').toLowerCase()!==ADMIN_EMAIL){await db.auth.signOut();throw new Error('यह account admin के लिए authorized नहीं है।')}
+  $('adminPassword').value='';
+  setAdminAccess(data.session);
+ }catch(err){
+  document.body.classList.remove('admin-authenticated');
+  adminSession=null;
+  $('adminAuthMsg').textContent='Login नहीं हुआ: '+(err.message||'Email/password जाँचें।');
+ }finally{$('adminLoginBtn').disabled=false}
+});
+// No saved session is restored. Reloading/reopening this page always requires login again.
+$('adminLogoutBtn').addEventListener('click',async()=>{await db.auth.signOut();adminSession=null;document.body.classList.remove('admin-authenticated');$('adminPassword').value='';$('adminAuthMsg').textContent='Logout हो गया। अब दोबारा login करें।';});
+function render(){
+ $("productList").innerHTML=products.length?products.map(p=>`
+ <article class="product">
+ <img src="${escapeAttr(p.image||p.img||"")}" alt="">
+ <div class="info">
+ <h3>${escapeHTML(p.name)}</h3>
+ <p>${escapeHTML(p.category)} · ${escapeHTML(p.unit)}</p>
+ <p><b>₹${Number(p.price).toFixed(2)}</b></p>
+ <p class="status">${p.available?"● उपलब्ध":"● उपलब्ध नहीं"}</p>
+ <div class="actions">
+ <button class="secondary" data-edit="${p.id}">Edit</button>
+ <button class="secondary" data-toggle="${p.id}">${p.available?"Unavailable":"Available"}</button>
+ <button class="danger" data-delete="${p.id}">Delete</button>
+ </div></div></article>`).join(""):'<p>अभी कोई product नहीं है।</p>';
+}
+function escapeHTML(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function escapeAttr(s){return escapeHTML(s)}
+function resetForm(){
+ $("productForm").reset();$("editId").value="";$("available").checked=true;
+ $("formTitle").textContent="➕ नया Product जोड़ें";
+ $("saveBtn").textContent="Product Save करें";$("cancelBtn").hidden=true;
+}
+$("productForm").addEventListener("submit",async e=>{
+ e.preventDefault();
+ const editId=$("editId").value;
+ const item={
+ id:editId?Number(editId):Date.now(),
+ name:$("name").value.trim(),
+ category:$("category").value,
+ unit:$("unit").value.trim(),
+ price:Number($("price").value),
+ old:Number($("old").value)||Number($("price").value),
+ image:$("image").value.trim(),
+ available:$("available").checked
+ };
+ if(!item.name||!item.unit||!Number.isFinite(item.price)||item.price<=0){alert("Product name, unit और सही price भरें।");return}
+ if(!adminSession || (adminSession.user.email||'').toLowerCase()!==ADMIN_EMAIL){alert('पहले admin email login करें।');return}
+ try{
+  const row={name:item.name,description:'',price:item.price,old_price:item.old,image_url:item.image,category:item.category,unit:item.unit,available:item.available,in_stock:item.available};
+  if(editId){const {error}=await db.from('products').update(row).eq('id',Number(editId));if(error)throw error;products=products.map(p=>p.id===Number(editId)?{...item,id:Number(editId)}:p)}
+  else{const {data,error}=await db.from('products').insert(row).select().single();if(error)throw error;products.push({...item,id:data.id})}
+  localStorage.setItem(KEY,JSON.stringify(products));render();resetForm();alert('Product Supabase में save हो गया।');
+ }catch(err){alert('Database save नहीं हुआ: '+(err.message||err))}
+});
+$("productList").addEventListener("click",e=>{
+ const edit=e.target.closest("[data-edit]");
+ const del=e.target.closest("[data-delete]");
+ const toggle=e.target.closest("[data-toggle]");
+ if(edit){
+  const p=products.find(x=>x.id===Number(edit.dataset.edit));if(!p)return;
+  $("editId").value=p.id;$("name").value=p.name;$("category").value=p.category;
+  $("unit").value=p.unit;$("price").value=p.price;$("old").value=p.old;
+  $("image").value=p.image||p.img||"";$("available").checked=p.available;
+  $("formTitle").textContent="✏️ Product Edit करें";
+  $("saveBtn").textContent="Changes Save करें";$("cancelBtn").hidden=false;
+  window.scrollTo({top:0,behavior:"smooth"});
+ }
+ if(del){
+  const id=Number(del.dataset.delete);
+  if(confirm("क्या यह product delete करना है?")){if(!adminSession || (adminSession.user.email||"").toLowerCase()!==ADMIN_EMAIL){alert("पहले admin login करें।");return}db.from("products").delete().eq("id",id).then(({error})=>{if(error){alert("Delete error: "+error.message);return}products=products.filter(p=>p.id!==id);localStorage.setItem(KEY,JSON.stringify(products));render()})}
+ }
+ if(toggle){
+  const p=products.find(x=>x.id===Number(toggle.dataset.toggle));if(!p)return;
+  if(!adminSession || (adminSession.user.email||"").toLowerCase()!==ADMIN_EMAIL){alert("पहले admin login करें।");return}p.available=!p.available;db.from("products").update({available:p.available,in_stock:p.available}).eq("id",p.id).then(({error})=>{if(error){alert("Update error: "+error.message);p.available=!p.available;return}localStorage.setItem(KEY,JSON.stringify(products));render()});
+ }
+});
+$("cancelBtn").addEventListener("click",resetForm);
+render();renderOrders();document.body.classList.remove("admin-authenticated");
+</script>
+</body>
+</html>
